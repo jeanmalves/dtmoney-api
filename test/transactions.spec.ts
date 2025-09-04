@@ -50,4 +50,33 @@ describe('transactions', () => {
       })
     ]);
   });
+
+  it('should be able to list a transaction', async () => {
+    const responseNewTransaction = await request(app.server)
+      .post('/transactions')
+      .send({
+        title: 'New transaction',
+        amount: 5000,
+        type: 'credit'
+      })
+
+    const cookies = responseNewTransaction.get('Set-Cookie') || []
+
+    const responseTransactions = await request(app.server)
+      .get('/transactions')
+      .set('Cookie', cookies)
+
+    const responseTransactionId = responseTransactions.body.transactions[0].id
+
+    const responseTransaction = await request(app.server)
+      .get(`/transactions/${responseTransactionId}`)
+      .set('Cookie', cookies)
+
+    expect(responseTransaction.body.transaction).toEqual(
+      expect.objectContaining({
+        title: 'New transaction',
+        amount: 5000
+      })
+    );
+  });
 })
