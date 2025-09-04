@@ -79,4 +79,34 @@ describe('transactions', () => {
       })
     );
   });
+
+  it('should be able to get sumary', async () => {
+    const responseNewTransaction = await request(app.server)
+      .post('/transactions')
+      .send({
+        title: 'Credit transaction',
+        amount: 5000,
+        type: 'credit'
+      })
+
+    const cookies = responseNewTransaction.get('Set-Cookie') || []
+
+    await request(app.server)
+      .post('/transactions')
+      .set('Cookie', cookies)
+      .send({
+        title: 'Debit transaction',
+        amount: 2000,
+        type: 'debit'
+      })
+
+    const responseSumary = await request(app.server)
+      .get('/transactions/sumary')
+      .set('Cookie', cookies)
+
+    expect(responseSumary.body.sumary).toEqual({
+      amount: 3000
+    })
+  });
+
 })
